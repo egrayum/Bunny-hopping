@@ -1,0 +1,679 @@
+<html>
+ <head>
+  <title>turtlekins game</title>
+  <link rel="stylesheet" type="text/css" href="labs.css"></link>
+  <canvas id="gameCanvas" style="background:#047018; width:100%; height:100%; text-align:center;">
+  <script type="text/javascript" src="Addon.js"></script>
+  <script>
+   var c = document.getElementById("gameCanvas");
+   var ctx = c.getContext("2d");
+   var pX = 100;
+   var pY = 400;
+   var direct;
+   var screen = 1;
+   var points = 0;
+   var room;
+   var oldpX;
+   var oldpY;
+   var layout = [];
+   var roomPos;
+   var posChangeX;
+   var posChangeY;
+   var posStore = [];
+   var i;
+   var direction;
+   var found;
+   var nType = [1, 2, 4, 5, 7, 8, 11];
+   var sType = [1, 2, 4, 6, 9, 10, 11];
+   var eType = [3, 4, 5, 6, 8, 10, 11];
+   var wType = [2, 3, 5, 6, 7, 9, 11];
+   var roomImage = new Image();
+   var builds = 0;
+   var obtained = false; // Have you picked up the token in this room?
+   var discRooms = 0;
+   var level = 0;
+   var colorA = ["#f9ae0d", "#7aa5f6", "#047018", "#742727", "#d74805", "#031a69", "#2d9186", "#555555"];
+   var color = colorA[2];
+   var speed = 5;
+   var dashT = 2;
+   var secretA = [];
+   var sfound;
+   var rad = 75;
+   var hunger = 10;
+   var pHealth = 100;
+   var run = 0;
+   var secret = false;
+   var quests = 1;
+   var buildType;
+   var buildTier;
+   var maxHunger = 10;
+   var goUp;
+   var iron = 0;
+   var speedChange = 0;
+   var showTokens = false;
+   var bricks = 0;
+   var mortar = 0;
+   var lumber = 0;
+   var bossFight = false;
+   var phase = "none";
+   var yVel;
+   var xVel;
+   var nextL;
+   function dashStop() {
+    dashT = 0;
+   }
+   function dashCooldown() {
+    dashT = 2;
+   }
+   // for updating arrays
+   function updateSecretA(position, attr, value) {
+    for (i = 0; i < secretA.length; i++) {
+     if (secretA[i].pos == position) {
+      secretA[i][attr] = value; 
+     } 
+    }
+   }
+   // for seeing if you are going into a secret room
+   function checkSecret() {
+    if (direction == "N") {
+     if (room == 3 || room == 6 || room == 9 || room == 10) {
+      room = 99;
+      secret = true;
+     }
+    } else if (direction == "S") {
+     if (room == 3 || room == 5 || room == 7 || room == 8) {
+      room = 100;
+      secret = true;
+     }
+    } else if (direction == "E") {
+     if (room == 1 || room == 7 || room == 2 || room == 9) {
+      room = 101;
+      secret = true;
+     }
+    } else if (direction == "W") {
+     if (room == 1 || room == 4 || room == 8 || room == 10) {
+      room = 102;
+      secret = true;
+     }
+    }
+   }
+   // collision for player
+   function collision(ifs) {
+    if (ifs) {
+       pX = oldpX;
+       pY = oldpY;
+      } else { 
+       oldpX = pX;
+       oldpY = pY;
+      }
+   }
+   // function to be run onload
+   function init() {
+    c.width = 800;
+    c.height = 600;
+    screen = 1;
+    window.setInterval(runGame, 20);
+   }
+   // CONTROLS
+   // keyup for cancelling things
+   document.addEventListener("keyup", function(event) {
+    if (event.keyCode == 37 || event.keyCode == 38 || event.keyCode == 39 || event.keyCode == 40) {
+     direct = undefined; 
+    } else if (event.keyCode == 32) {
+     run = 0;
+    } else if (event.keyCode == 84) {
+     showTokens = false;
+    }
+   })
+   // controls
+   document.addEventListener("keydown", function(event) {
+    if (event.keyCode == 37) {
+     direct = 1;
+    } else if (event.keyCode == 38) {
+     direct = 2; 
+    } else if (event.keyCode == 39) {
+     direct = 3;
+    } else if (event.keyCode == 40) {
+     direct = 4;
+    } else if (event.keyCode == 32) {
+     run = 1;
+    } else if (event.keyCode == 16 && hunger > 3 && dashT == 2) {
+     dashT = 1;
+     window.setTimeout(dashStop, 200);
+     window.setTimeout(dashCooldown, 3200);
+    } else if (event.keyCode == 77 && bossFight == false) {
+     goUp = true;
+    } else if (event.keyCode == 84) {
+     showTokens = true;
+    } else if (event.keyCode == 66) {
+     bossFight = true;
+    }
+   })
+   // running the game 50 times per second
+   function runGame() {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, c.width, c.height);
+    // above ground
+    if (screen == 1) {
+     ctx.fillStyle = colorA[2];
+     ctx.fillRect(0, 0, c.width, c.height);
+     ctx.fillStyle = "#000";
+     ctx.fillStyle = "#b26a25";
+     ctx.fillRect(200, 200, 400, 150);
+     ctx.fillStyle = "#000";
+     ctx.font = "30px Arial";
+     ctx.fillText("Bring quest item here", 210, 240);
+     if (quests == 1) {
+      ctx.font = "40px Arial";
+      ctx.fillText("Quest 1: Mortar", 200, 120);
+      ctx.font = "20px Arial";
+      ctx.fillText("Go to level 2 in the mine and bring back some mortar.", 150, 180);
+      if (pY < 350 && pX < 600 && pX > 150 && pY > 150 && buildTier == 1) {
+       quests = 2;
+       maxHunger += 1;
+       speed += speedChange;
+       speedChange = 0;
+       builds = 0;
+       bricks = 0;
+       mortar = 0;
+       iron = 0;
+       lumber = 0;
+      }
+     } else if (quests == 2) {
+      ctx.font = "40px Arial";
+      ctx.fillText("Quest 2: iron", 200, 120);
+      ctx.font = "20px Arial";
+      ctx.fillText("Go to level 4 in the mine and bring back some iron.", 150, 180);
+      if (pY < 350 && pX < 600 && pX > 150 && pY > 150 && buildTier == 2) {
+       quests = 3;
+       maxHunger += 1;
+       speed += speedChange;
+       speedChange = 0;
+       builds = 0;
+       bricks = 0;
+       mortar = 0;
+       iron = 0;
+       lumber = 0;
+      }
+     } else if (quests == 3) {
+      ctx.font = "40px Arial";
+      ctx.fillText("Quest 3: Silver Trophy", 200, 120);
+      ctx.font = "20px Arial";
+      ctx.fillText("Go to level 5. Bring back lumber. Be careful though, a monster waits for you.", 150, 180);
+      ctx.font = "40px Arial";
+      if (pY < 350 && pX < 600 && pX > 150 && pY > 150 && buildTier == 3) {
+       quests = 4;
+       maxHunger += 1;
+       speed += speedChange;
+       speedChange = 0;
+       builds = 0;
+       bricks = 0;
+       mortar = 0;
+       iron = 0;
+       lumber = 0;
+      }
+     }
+     ctx.fillStyle = "#333";
+     ctx.font = "35px Arial";
+     ctx.fillStyle = "#000";
+     ctx.beginPath();
+     ctx.arc(690, 490, rad, 0, 2 * Math.PI);
+     ctx.fill();
+     ctx.fillText("Mine", 640, 380);
+     if (pX > 560 && pY > 360 && rad < 1000) {
+      rad += 10;
+      window.setTimeout(enterMine, 2250);
+     }
+     // cave
+    } else if (screen == 2) {
+     // room types
+     ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+     if (room == 1) {
+      // I
+      ctx.fillRect(0, 0, 300, c.height);
+      ctx.fillRect(500, 0, 300, c.height);
+      collision(pX < 300 || pX > 450);
+     } else if (room == 2) {
+      // T from the left
+      ctx.fillRect(0, 0, 300, c.height); 
+      ctx.fillRect(500, 0, 300, 200);
+      ctx.fillRect(500, 400, 300, 200);
+      collision(pX < 300 || pX > 450 && pY < 200 || pX > 450 && pY > 350);
+     } else if (room == 3) { 
+      // I on its side
+      ctx.fillRect(0, 0, c.width, 200);
+      ctx.fillRect(0, 400, c.width, 200);
+      collision(pY < 200 || pY > 350);
+     } else if (room == 4) {
+      // T from the right
+      ctx.fillRect(0, 0, 300, 200);
+      ctx.fillRect(500, 0, 300, c.height);
+      ctx.fillRect(0, 400, 300, 200);
+      collision(pX > 450 || pX < 300 && pY > 350 || pX < 300 && pY < 200);
+     } else if (room == 5) {
+      // T
+      ctx.fillRect(0, 0, c.width, 200);
+      ctx.fillRect(0, 400, 300, 200);
+      ctx.fillRect(500, 400, 300, 200);
+      collision(pY < 200 || pY > 350 && pX < 300 || pY > 350 && pX > 450);
+     } else if (room == 6) {
+      // upside-down T
+      ctx.fillRect(0, 400, c.width, 200);
+      ctx.fillRect(0, 0, 300, 200);
+      ctx.fillRect(500, 0, 300, 200);
+      collision(pY > 350 || pY < 200 && pX < 300 || pY < 200 && pX > 450);
+     } else if (room == 7) {
+      // Upside-down L
+      ctx.fillRect(0, 0, c.width, 200);
+      ctx.fillRect(0, 200, 300, 400);
+      ctx.fillRect(500, 400, 300, 200);
+      collision(pX < 300 || pY < 200 || pX > 450 && pY > 350);
+     } else if (room == 8) {
+      // Rotated L
+      ctx.fillRect(0, 0, c.width, 200);
+      ctx.fillRect(500, 200, 300, 400);
+      ctx.fillRect(0, 400, 300, 200);
+      collision(pY < 200 || pX > 450 || pY > 350 && pX < 300);
+     } else if (room == 9) {
+      // L
+      ctx.fillRect(0, 0, 300, c.height);
+      ctx.fillRect(300, 400, 500, 200);
+      ctx.fillRect(500, 0, 300, 200);
+      collision(pY > 350 || pX < 300 || pY < 200 && pX > 450);
+     } else if (room == 10) {
+      // Reflected L
+      ctx.fillRect(0, 0, 300, 200);
+      ctx.fillRect(0, 400, c.width, 200);
+      ctx.fillRect(500, 0, 300, 400);
+      collision(pX > 450 || pY > 350 || pY < 200 && pX < 300);
+     } else if (room == 11) { 
+      // Plus
+      ctx.fillRect(0, 0, 300, 200);
+      ctx.fillRect(0, 400, 300, 200);
+      ctx.fillRect(500, 0, 300, 200);
+      ctx.fillRect(500, 400, 300, 200);
+      collision(pX < 300 && pY < 200 || pX > 450 && pY < 200 || pX > 450 && pY > 350 || pX < 300 && pY > 350);
+     } else if (room == 99) {
+      // secret room enterable going N
+      ctx.fillRect(0, 0, c.width, 50);
+      ctx.fillRect(0, 100, 50, 400);
+      ctx.fillRect(700, 100, 50, 400);
+      ctx.fillRect(0, 500, 300, 50);
+      ctx.fillRect(500, 500, 300, 50);
+      collision(pX < 50 || pX > 700 || pY < 50 || pY > 500 && pX < 300 || pY > 500 && pX > 450);
+     } else if (room == 100) {
+      // secret room enterable going S
+      ctx.fillRect(0, 50, 50, 500);
+      ctx.fillRect(0, 0, 300, 50);
+      ctx.fillRect(0, 550, c.width, 50);
+      ctx.fillRect(500, 0, 300, 50);
+      ctx.fillRect(750, 50, 50, 500);
+      collision(pX < 50 || pX > 700 || pY > 500 || pY < 50 && pX < 300 || pY < 50 && pX > 450);
+     } else if (room == 101) {
+      // room enterable going E
+      ctx.fillRect(50, 0, 700, 50);
+      ctx.fillRect(700, 0, 50, c.height);
+      ctx.fillRect(50, 500, 700, 50);
+      ctx.fillRect(0, 0, 50, 200);
+      ctx.fillRect(0, 400, 50, 200);
+      collision(pX > 700 || pY < 50 || pY > 500 || pX < 150 && pY < 200 || pX < 50 && pY > 350);
+     } else if (room == 102) {
+      // enterable going W
+      ctx.fillRect(50, 0, 600, 50);
+      ctx.fillRect(0, 0, 50, c.height);
+      ctx.fillRect(50, 500, 700, 50);
+      ctx.fillRect(700, 0, 50, 200);
+      ctx.fillRect(700, 400, 50, 200);
+      collision(pX < 50 || pY < 50 || pY > 500 || pX > 700 && pY < 200 || pX > 750 && pY > 350);
+     }
+     // changing room position
+     if (pX < 5) {
+      posStore = roomPos.split(",");
+      posChangeX = parseInt(posStore[0], 10);
+      posChangeY = posStore[1];
+      posChangeX -= 1;
+      posChangeX.toString(10);
+      roomPos = posChangeX + "," + posChangeY;
+      direction = "W";
+      checkRoom();
+      beenHere();
+      pX = 744;
+     } else if (pX > 745) {
+      posStore = roomPos.split(",");
+      posChangeX = parseInt(posStore[0], 10);
+      posChangeY = posStore[1];
+      posChangeX += 1;
+      posChangeX.toString(10);
+      roomPos = posChangeX + "," + posChangeY;
+      direction = "E";
+      checkRoom();
+      beenHere();
+      pX = 10;
+     } else if (pY < 5) {
+      posStore = roomPos.split(",");
+      posChangeY = parseInt(posStore[1], 10);
+      posChangeX = posStore[0];
+      posChangeY += 1;
+      posChangeY.toString(10);
+      roomPos = posChangeX + "," + posChangeY;
+      direction = "N";
+      checkRoom();
+      beenHere();
+      pY = 545;
+     } else if (pY > 545) {
+      posStore = roomPos.split(",");
+      posChangeY = parseInt(posStore[1], 10);
+      posChangeX = posStore[0];
+      posChangeY -= 1;
+      posChangeY.toString(10);
+      roomPos = posChangeX + "," + posChangeY;
+      direction = "S";
+      checkRoom();
+      beenHere();
+      pY = 10;
+     }
+    }
+    // check if the room exists
+    function checkRoom() {
+     found = 1;
+     secret = false;
+     for (i = 0; i < layout.length; i++) {
+      if (layout[i].pos == roomPos) {
+       room = layout[i].type;
+       checkSecret();
+       found = 2;
+      } 
+     }
+     if (found == 1) {
+       addRoom();
+      }
+     i = 2;
+    }
+    // function that adds a room to the array
+    function addRoom () {
+     points++;
+     i = 2;
+     rad = 75;
+     discRooms++;
+     if (direction == "N") {
+      room = nType[Math.round(Math.random() * (nType.length - 1))];
+      layout[layout.length] = {
+       "type":room,
+       "pos":roomPos
+      }
+     } else if (direction == "E") {
+      room = eType[Math.round(Math.random() * (eType.length - 1))];
+      layout[layout.length] = {
+       "type":room,
+       "pos":roomPos
+      }
+     } else if (direction == "W") {
+      room = wType[Math.round(Math.random() * (wType.length - 1))];
+      layout[layout.length] = {
+       "type":room,
+       "pos":roomPos
+      }
+     } else if (direction == "S") {
+     room = sType[Math.round(Math.random() * (sType.length - 1))];
+      layout[layout.length] = {
+       "type":room,
+       "pos":roomPos
+      }
+     }
+    }
+    // portal to next level
+    function portal(cX, cY) {
+     if (builds > (level * 3) - 1 && discRooms > 0 && roomPos == "0,0" && screen == 2) {
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(cX, cY, rad, 0, 2 * Math.PI);
+      ctx.fill();
+      if (pX > 274 && pX < 426 && pY > 174 && pY < 326 && rad < 550) {
+       goUp = true;
+       rad += 10;
+       nextL = window.setInterval(next, 20);
+      }
+     }
+    }
+    portal(400, 300);
+    
+    function next() {
+     if (goUp == "no" && i == 2) {
+      window.setTimeout(nextLevel, 1500);
+      i = 0;
+      clearInterval(nextL);
+     }
+    }
+    // secret room check if you've been here, if not add the room to the array
+    function beenHere() {
+    if (room == 99 || room == 100 || room == 101 || room == 102) {
+      sfound = false;
+      // check if room is in secret room array
+      for (i = 0; i < secretA.length; i++) {
+       if (secretA[i].pos == roomPos) {
+          sfound = true;
+          // handle token
+          obtained = secretA[i].obtained;
+       }
+      }
+      // add room to array
+      if (sfound == false) {
+        secretA[secretA.length] = {
+        "pos":roomPos,
+        "obtained":false
+       }
+       obtained = false;
+      }
+     }
+    }
+    // tokens
+    if (level < 2) {
+     buildType = "brick";
+     ctx.fillStyle = "#bb602f";
+    } else if (level > 1 && level < 4) {
+     buildType = "mortar";
+     ctx.fillStyle = "#9d8460";
+    } else if (level > 3 && level < 5) {
+     buildType = "iron";
+     ctx.fillStyle = "#958f8d";
+    } else if (level > 4 && level < 7) {
+     buildType = "lumber";
+     ctx.fillStyle = "#924f1d";
+    }
+    if (secret == true && obtained == false) {
+     ctx.fillRect(375, 275, 50, 50);
+     // check if player picks up token
+     if (pX > 324 && pX < 426 && pY > 224 && pY < 326) {
+      obtained = true;
+      // record obtained in array 
+      updateSecretA(roomPos, 'obtained', true);
+      builds += 1;
+      points += 10;
+      dashT = 2;
+      if (pHealth < 80) {
+       pHealth += 15;
+      }
+      if (speedChange < 4 && speed < 9) {
+       speedChange += 0.5;
+      }
+      if (buildType == "bricks") {
+       buildTier = 0;
+       bricks++;
+      }
+      if (buildType == "mortar") {
+       buildTier = 1;
+       mortar++;
+      }
+      if (buildType == "iron") {
+       buildTier = 2;
+       iron++;
+      }
+      if (buildType == "lumber") {
+       buildTier = 3;
+       lumber++;
+      }
+     }
+    } 
+    // for moving the player
+    function move(speeds) {
+     if (direct == 1 && pX - 5 > - 5) {
+      pX -= speed + speedChange;
+     } else if (direct == 2 && pY - 5 > - 5) {
+      pY -= speed + speedChange;
+     } else if (direct == 3 && pX + 5 < 755) {
+      pX += speed + speedChange;
+     } else if (direct == 4 && pY + 5 < 555) {
+      pY += speed + speedChange;
+     }
+    }
+    if (phase != "barricade") {
+     move(speed);
+    }
+    // for running
+    if (run == 0 && hunger < maxHunger && phase != "barricade") {
+     hunger += 0.01;
+    } else if (run == 1 && hunger > 0) {
+     hunger -= 0.05;
+     move(speed + 3);
+    }
+    if (hunger < 0) {
+     hunger = 0;
+    }
+    // for dashing
+    if (dashT == 1 && hunger > 4) {
+     if (direct == 1 && pX - 5 > - 5) {
+      pX -= 20;
+     } else if (direct == 2 && pY - 5 > - 5) {
+      pY -= 20;
+     } else if (direct == 3 && pX + 5 < 755) {
+      pX += 20;
+     } else if (direct == 4 && pY + 5 < 555) {
+      pY += 20;
+     }
+    }
+    //player
+    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+    ctx.fillRect(pX, pY, 50, 50);
+    if (screen == 2) {
+     // health and hunger (energy)
+     ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+     ctx.fillRect(525, 10, pHealth * 2.5, 24);
+     ctx.fillRect(525, 38, hunger * 10, 16);
+     ctx.fillStyle = "#000";
+     ctx.font = "20px Arial";
+     ctx.fillText("health: " + pHealth + "/100", 530, 30);
+     ctx.font = "12px Arial";
+     ctx.fillText("energy: " + Math.round(hunger) + "/" + maxHunger, 530, 50);
+    }
+    // info
+    ctx.fillStyle = "#fff";
+    ctx.font = "20px Arial";
+    ctx.fillText("Tokens: " + builds, 10, 100);
+    ctx.fillText("Points: " + points, 10, 25);
+    ctx.fillText("Level: " + level, 10, 50);
+    ctx.fillText("Points highscore: " + localStorage.getItem("highscorePoint"), 10, 125);
+    if (room == 99 || room == 100 || room == 101 || room == 102) {
+     ctx.fillText("Room position: Unknown", 10, 75);
+    } else {
+     ctx.fillText("Room position: " + roomPos, 10, 75);
+    }
+    if (goUp == true) {
+     ctx.fillStyle = "#000";
+     ctx.fillRect(100, 250, 600, 100);
+     ctx.fillStyle = "#fff";
+     ctx.font = "30px Arial";
+     ctx.fillText("Do you want to go back to the surface?", 150, 290);
+     ctx.fillText("Yes", 160, 340);
+     ctx.fillText("No", 450, 340);
+     c.onclick = function toSurface() {
+      if (goUp == true) {
+       if (event.pageX < 300) {
+        if (roomPos != "0,0") {
+         points = 0;
+        }
+        screen = 1;
+        goUp = false;
+        pX = 100;
+        pY = 400;
+        if (localStorage.getItem("highscorePoint") == undefined || localStorage.getItem("highscorePoint") < points) {
+         localStorage.removeItem("highscorePoint");
+         localStorage.setItem("highscorePoint", points);
+        }
+       } else if (event.pageX > 410) {
+        goUp = "no";
+       }
+      }
+     }
+    }
+    if (showTokens == true) {
+     ctx.fillStyle = "#000";
+     ctx.fillRect(50, 50, c.width - 100, c.height - 100);
+     ctx.fillStyle = "#fff";
+     ctx.font = "20px Arial";
+     ctx.fillText("Total materials: " + builds, 150, 90);
+     if (bricks > 0) {
+      ctx.fillText("Bricks: " + bricks, 70, 140);
+     }
+     if (mortar > 0) {
+      ctx.fillText("mortar: " + mortar, 70, 170);
+     }
+     if (iron > 0) {
+      ctx.fillText("Iron: " + iron, 70, 200);
+     }
+     if (lumber > 0) {
+      ctx.fillText("Lumber: " + lumber, 70, 230);
+     }
+    }
+    boss();
+   }
+   // going to next level
+   function nextLevel() {
+       rad = 75;
+       color = colorA[Math.round(Math.random() * (color.length))];
+       discRooms = 0;
+       level++;
+       screen = 2;
+       room = 11;
+       roomPos = "0,0";
+       pX = 375;
+       pY = 275;
+       layout = [];
+       layout[0] = {
+        "type":11,
+        "pos":"0,0"
+       } 
+       secretA = [];
+   }
+   function enterMine() {
+    level = 1;
+    screen = 2;
+    room = 11;
+    roomPos = "0,0";
+    pX = 375;
+    pY = 275;
+    layout[0] = {
+     "type":11,
+     "pos":"0,0"
+    }
+   }
+   c.onclick = function fire() {
+    if (fireball != true) {
+     fX = pX + 25;
+     fY = pY + 25;
+    if (event.pageX > pX + 150) {
+     xVel = 12;
+    } else if (event.pageY > pY + 150) {
+     yVel = 12;
+    } else if (event.pageX < pX - 100) {
+     xVel = -12;
+    } else if (event.pageY < pY - 100) {
+     yVel = -12;   
+    } 
+     fireball = true;
+    } 
+   }
+  </script>
+ </head>
+ <body onload="init()">
+ </body>
+<html>
