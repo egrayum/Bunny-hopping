@@ -38,4 +38,6 @@ a {
 a.nav {
   background-color: #66aa66;
   color: #444455;
+  padding-top: 20px;
+  border-radius: 5px;
 }
