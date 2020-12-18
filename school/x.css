@@ -38,6 +38,7 @@ a {
 a.nav {
   background-color: #66aa66;
   color: #444455;
-  padding-top: 20px;
-  border-radius: 5px;
+  padding: 12px;
+  margin-top: 20px;
+  border-radius: 8px;
 }
