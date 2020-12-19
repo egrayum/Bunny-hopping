@@ -69,8 +69,8 @@
    function updateSecretA(position, attr, value) {
     for (i = 0; i < secretA.length; i++) {
      if (secretA[i].pos == position) {
-      secretA[i][attr] = value; 
-     } 
+      secretA[i][attr] = value;
+     }
     }
    }
    // for seeing if you are going into a secret room
@@ -102,7 +102,7 @@
     if (ifs) {
        pX = oldpX;
        pY = oldpY;
-      } else { 
+      } else {
        oldpX = pX;
        oldpY = pY;
       }
@@ -118,7 +118,7 @@
    // keyup for cancelling things
    document.addEventListener("keyup", function(event) {
     if (event.keyCode == 37 || event.keyCode == 38 || event.keyCode == 39 || event.keyCode == 40) {
-     direct = undefined; 
+     direct = undefined;
     } else if (event.keyCode == 32) {
      run = 0;
     } else if (event.keyCode == 84) {
@@ -130,7 +130,7 @@
     if (event.keyCode == 37) {
      direct = 1;
     } else if (event.keyCode == 38) {
-     direct = 2; 
+     direct = 2;
     } else if (event.keyCode == 39) {
      direct = 3;
     } else if (event.keyCode == 40) {
@@ -235,11 +235,11 @@
       collision(pX < 300 || pX > 450);
      } else if (room == 2) {
       // T from the left
-      ctx.fillRect(0, 0, 300, c.height); 
+      ctx.fillRect(0, 0, 300, c.height);
       ctx.fillRect(500, 0, 300, 200);
       ctx.fillRect(500, 400, 300, 200);
       collision(pX < 300 || pX > 450 && pY < 200 || pX > 450 && pY > 350);
-     } else if (room == 3) { 
+     } else if (room == 3) {
       // I on its side
       ctx.fillRect(0, 0, c.width, 200);
       ctx.fillRect(0, 400, c.width, 200);
@@ -286,7 +286,7 @@
       ctx.fillRect(0, 400, c.width, 200);
       ctx.fillRect(500, 0, 300, 400);
       collision(pX > 450 || pY > 350 || pY < 200 && pX < 300);
-     } else if (room == 11) { 
+     } else if (room == 11) {
       // Plus
       ctx.fillRect(0, 0, 300, 200);
       ctx.fillRect(0, 400, 300, 200);
@@ -382,7 +382,7 @@
        room = layout[i].type;
        checkSecret();
        found = 2;
-      } 
+      }
      }
      if (found == 1) {
        addRoom();
@@ -436,7 +436,7 @@
      }
     }
     portal(400, 300);
-    
+
     function next() {
      if (goUp == "no" && i == 2) {
       window.setTimeout(nextLevel, 1500);
@@ -485,7 +485,7 @@
      // check if player picks up token
      if (pX > 324 && pX < 426 && pY > 224 && pY < 326) {
       obtained = true;
-      // record obtained in array 
+      // record obtained in array
       updateSecretA(roomPos, 'obtained', true);
       builds += 1;
       points += 10;
@@ -513,7 +513,7 @@
        lumber++;
       }
      }
-    } 
+    }
     // for moving the player
     function move(speeds) {
      if (direct == 1 && pX - 5 > - 5) {
@@ -641,7 +641,7 @@
        layout[0] = {
         "type":11,
         "pos":"0,0"
-       } 
+       }
        secretA = [];
    }
    function enterMine() {
@@ -667,13 +667,15 @@
     } else if (event.pageX < pX - 100) {
      xVel = -12;
     } else if (event.pageY < pY - 100) {
-     yVel = -12;   
-    } 
+     yVel = -12;
+    }
      fireball = true;
-    } 
+    }
    }
   </script>
  </head>
  <body onload="init()">
+   <div class="topbar"></div>
+   <a href="/egrayum.github.io/games.html" class="nav">&#60;Main games page</a>
  </body>
 <html>
