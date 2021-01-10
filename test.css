@@ -1,0 +1,22 @@
+
+body {
+  background-color: #555;
+}
+
+p {
+  margin: 10px;
+}
+
+.container {
+  background-color: #eee;
+  display: flow-root;
+  margin: 0 auto;
+  width: 600px;
+}
+
+.box {
+  float: left;
+  background-color: #aaa;
+  border-radius: 15px;
+  margin: 5px 10px 0 5px;
+}
