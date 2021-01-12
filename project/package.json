@@ -1,0 +1,22 @@
+{
+  "name": "test",
+  "version": "0.0.1",
+  "description": "A test for html tenplating.",
+  "main": "project",
+  "scripts": {
+    "test": "run_test_project"
+  },
+  "repository": {
+    "type": "git",
+    "url": "egrayum.github.io"
+  },
+  "keywords": [
+    "test",
+    "wip"
+  ],
+  "author": "ethan",
+  "license": "0BSD",
+  "devDependencies": {
+    "gulp": "^4.0.2"
+  }
+}

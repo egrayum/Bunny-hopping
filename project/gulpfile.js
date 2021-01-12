@@ -1,4 +1,7 @@
-gulp.task('nunjucks', function() {
+var http = require('http');
+var gulp = require('./gulp');
+
+gulp.task('nunjucks', function build() {
   // Gets .html and .nunjucks files in pages
   return gulp.src('app/pages/**/*.+(html|nunjucks)')
   // Renders template with nunjucks
@@ -8,3 +11,5 @@ gulp.task('nunjucks', function() {
   // output files in app folder
   .pipe(gulp.dest('app'))
 });
+
+exports.build = build;
