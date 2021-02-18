@@ -1,5 +1,5 @@
 var http = require('http');
-var gulp = require('./gulp');
+var gulp = require('gulp');
 
 gulp.task('nunjucks', function build() {
   // Gets .html and .nunjucks files in pages
@@ -11,5 +11,3 @@ gulp.task('nunjucks', function build() {
   // output files in app folder
   .pipe(gulp.dest('app'))
 });
-
-exports.build = build;
